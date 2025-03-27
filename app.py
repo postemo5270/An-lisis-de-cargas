@@ -35,10 +35,10 @@ for i in range(n):
     st.subheader(f"Carga {i+1}")
     tag = st.text_input(f"TAG de la carga {i+1}", key=f"tag_{i}")
     descripcion = st.text_input(f"Descripción de la carga {i+1}", key=f"desc_{i}")
-    tipo = st.selectbox(f"Tipo de carga {i+1}", ["Iluminación", "Motor", "Equipo electrónico", "Aire acondicionado", "Otro"], key=f"tipo_{i}")
-    tension = st.selectbox(f"Tensión [V] de la carga {i+1}", [120, 208, 220, 440, 480], key=f"tens_{i}")
+    tipo = st.selectbox(f"Tipo de carga {i+1}", ["Motor"], key=f"tipo_{i}")
+    tension = st.selectbox(f"Tensión [V] de la carga {i+1}", [220, 440], key=f"tens_{i}")
     valor = st.number_input(f"Valor de la potencia de la carga {i+1}", key=f"valor_{i}")
-    unidad = st.selectbox(f"Unidad de la potencia", ["hp", "kW", "kVA"], key=f"unidad_{i}")
+    unidad = st.selectbox(f"Unidad de potencia de la carga {i+1}", ["hp", "kW", "kVA"], key=f"unidad_{i}")
 
     pot_kW = convertir_a_kW(valor, unidad)
     P, Q, S = calcular_potencias(pot_kW)
@@ -57,6 +57,28 @@ for i in range(n):
 
 # Mostrar resumen
 df_resultado = pd.DataFrame(cargas)
+
+# Calcular totales
+total_P = df_resultado["P [kW]"].sum()
+total_Q = df_resultado["Q [kVAR]"].sum()
+total_S = round(math.sqrt(total_P**2 + total_Q**2), 2)
+
+# Agregar fila de totales
+total_row = pd.DataFrame([{
+    "TAG": "",
+    "Descripción": "Total",
+    "Tipo": "",
+    "Tensión [V]": "",
+    "Potencia ingresada": "",
+    "Potencia [kW]": "",
+    "P [kW]": round(total_P, 2),
+    "Q [kVAR]": round(total_Q, 2),
+    "S [kVA]": total_S
+}])
+
+# Concatenar tabla con totales
+df_resultado = pd.concat([df_resultado, total_row], ignore_index=True)
+
 st.subheader("Resumen de cargas")
 st.dataframe(df_resultado, use_container_width=True)
 
@@ -68,4 +90,3 @@ st.download_button(
     file_name='resumen_cargas.csv',
     mime='text/csv'
 )  
-# Actualización de la app con nuevas fórmulas y estructura de cálculo
