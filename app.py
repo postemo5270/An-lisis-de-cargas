@@ -1,92 +1,71 @@
-import streamlit as st
-import math
+# seleccion_conductores_app.py
+
 import pandas as pd
+import math
+import streamlit as st
 
-st.set_page_config(page_title="Análisis de Cargas Eléctricas")
-st.title("Aplicación de Cálculo de Cargas Eléctricas")
+# Tabla interna de eficiencias DOE
+eficiencia_doe = pd.DataFrame({
+    'POTENCIA': [3, 5, 10, 15, 30, 45, 75, 112.5, 150, 225, 300, 500, 750, 1000, 1250, 1500, 1600, 2000, 2500, 3750, 5000, 7500, 10000],
+    'SECOS': [0.99, 0.99, 0.99, 0.9789, 0.9823, 0.984, 0.986, 0.9874, 0.9883, 0.9894, 0.9902, 0.9914, 0.9923, 0.9928, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
+    'ACEITE': [0.99, 0.99, 0.99, 0.9865, 0.9883, 0.9892, 0.9903, 0.9911, 0.9916, 0.9923, 0.9927, 0.9935, 0.994, 0.9943, 0.99, 0.9948, 0.99, 0.9951, 0.9953, 0.99, 0.99, 0.99, 0.99]
+})
 
-FACTOR_UTILIZACION = 0.8
-FACTOR_POTENCIA = 0.9
-EFICIENCIA = 0.88
-
-# Conversión de unidades a kW
-def convertir_a_kW(valor, unidad):
-    if unidad == "hp":
-        return valor * 0.746
-    elif unidad == "kW":
-        return valor
-    elif unidad == "kVA":
-        return valor * FACTOR_POTENCIA
+def seleccionar_transformador(kva_total_div):
+    candidatos = eficiencia_doe[eficiencia_doe['POTENCIA'] >= kva_total_div]
+    if not candidatos.empty:
+        return candidatos.iloc[0]['POTENCIA']
     else:
-        return 0
+        return eficiencia_doe['POTENCIA'].max()
 
-# Cálculo de potencias
-def calcular_potencias(pot_kW):
-    P = pot_kW * FACTOR_UTILIZACION
-    Q = P * math.tan(math.acos(FACTOR_POTENCIA))
-    S = math.sqrt(P**2 + Q**2)
-    return round(P, 2), round(Q, 2), round(S, 2)
+def obtener_eficiencia(tr_sel, tr_tipo):
+    fila = eficiencia_doe[eficiencia_doe['POTENCIA'] == tr_sel]
+    if not fila.empty:
+        return fila.iloc[0][tr_tipo.upper()]
+    return None
 
-st.markdown("Ingrese los datos de las cargas a analizar:")
-n = st.number_input("Número de cargas a ingresar", min_value=1, step=1)
+def calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo):
+    kva_total = math.sqrt(kw_total**2 + kvar_total**2)
+    fp_total = kw_total / kva_total if kva_total else 0
 
-cargas = []
-for i in range(n):
-    st.subheader(f"Carga {i+1}")
-    tag = st.text_input(f"TAG de la carga {i+1}", key=f"tag_{i}")
-    descripcion = st.text_input(f"Descripción de la carga {i+1}", key=f"desc_{i}")
-    tipo = st.selectbox(f"Tipo de carga {i+1}", ["Motor"], key=f"tipo_{i}")
-    tension = st.selectbox(f"Tensión [V] de la carga {i+1}", [220, 440], key=f"tens_{i}")
-    valor = st.number_input(f"Valor de la potencia de la carga {i+1}", key=f"valor_{i}")
-    unidad = st.selectbox(f"Unidad de potencia de la carga {i+1}", ["hp", "kW", "kVA"], key=f"unidad_{i}")
+    kva_div = kva_total * fd
+    kva_total_div = kva_div * (1 + res_min)
 
-    pot_kW = convertir_a_kW(valor, unidad)
-    P, Q, S = calcular_potencias(pot_kW)
+    tr_sel = seleccionar_transformador(kva_total_div)
+    tr_eff = obtener_eficiencia(tr_sel, tr_tipo)
 
-    cargas.append({
-        "TAG": tag,
-        "Descripción": descripcion,
-        "Tipo": tipo,
-        "Tensión [V]": tension,
-        "Potencia ingresada": f"{valor} {unidad}",
-        "Potencia [kW]": round(pot_kW, 2),
-        "P [kW]": P,
-        "Q [kVAR]": Q,
-        "S [kVA]": S
-    })
+    tr_perd = tr_sel * fp_total * ((1 / tr_eff) - 1)
+    kva_total_div_perd = kva_total_div + (tr_perd / fp_total)
 
-# Mostrar resumen
-df_resultado = pd.DataFrame(cargas)
+    res_final_kva = tr_sel - kva_total_div_perd
+    res_final_pct = res_final_kva / tr_sel
+    tr_carg = kva_total_div_perd / tr_sel
 
-# Calcular totales
-total_P = df_resultado["P [kW]"].sum()
-total_Q = df_resultado["Q [kVAR]"].sum()
-total_S = round(math.sqrt(total_P**2 + total_Q**2), 2)
+    return {
+        'Suma Total S[kVA]': kva_total,
+        'Factor de potencia total': fp_total,
+        'Carga diversificada [kVA]': kva_div,
+        'Carga con reserva [kVA]': kva_total_div,
+        'Transformador seleccionado [kVA]': tr_sel,
+        'Eficiencia': tr_eff,
+        'Pérdidas [kW]': tr_perd,
+        'Demanda total con pérdidas [kVA]': kva_total_div_perd,
+        'Reserva final [kVA]': res_final_kva,
+        'Reserva final [%]': res_final_pct,
+        'Cargabilidad [%]': tr_carg
+    }
 
-# Agregar fila de totales
-total_row = pd.DataFrame([{
-    "TAG": "",
-    "Descripción": "Total",
-    "Tipo": "",
-    "Tensión [V]": "",
-    "Potencia ingresada": "",
-    "Potencia [kW]": "",
-    "P [kW]": round(total_P, 2),
-    "Q [kVAR]": round(total_Q, 2),
-    "S [kVA]": total_S
-}])
+# Interfaz Streamlit
+st.title("Selección de Transformador")
 
-# Concatenar tabla con totales
-df_resultado = pd.concat([df_resultado, total_row], ignore_index=True)
+kw_total = st.number_input("Suma Total P [kW]", min_value=0.0, value=100.0)
+kvar_total = st.number_input("Suma Total Q [kVAR]", min_value=0.0, value=50.0)
+fd = st.slider("Factor de Diversificación", 0.0, 1.0, 0.75)
+res_min = st.slider("Reserva mínima [%]", 0.0, 0.5, 0.2)
+tr_tipo = st.selectbox("Tipo de transformador", ["SECO", "ACEITE"])
 
-st.subheader("Resumen de cargas")
-st.dataframe(df_resultado, use_container_width=True)
+if st.button("Calcular"):
+    resultados = calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo)
+    for key, val in resultados.items():
+        st.write(f"{key}: {round(val, 2)}")
 
-# Opcional: descarga como CSV
-csv = df_resultado.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Descargar resumen como CSV",
-    data=csv,
-    file_name='resumen_cargas.csv',
-    mime='text/csv'
-)  
