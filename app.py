@@ -89,7 +89,7 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 
     res_final_kva = tr_sel - kva_total_div_perd
     res_final_pct = res_final_kva / tr_sel
-    tr_carg = kva_total_div_perd / tr_sel
+    tr_carg = (kva_div +  tr_perd/fp_total)/ tr_sel
 
     return {
         'P [kW] total': kw_total,
