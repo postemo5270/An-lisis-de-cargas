@@ -3,7 +3,7 @@
 import pandas as pd
 import math
 import streamlit as st
-import pdfkit
+from weasyprint import HTML
 from jinja2 import Template
 
 # Tabla interna de eficiencias DOE
@@ -135,7 +135,7 @@ def generar_pdf(cargas_df, resumen):
     """
     template = Template(html_template)
     html_out = template.render(cargas_table=cargas_df.to_html(index=False), resumen=resumen)
-    pdfkit.from_string(html_out, "resultado_final.pdf")
+    HTML(string=html_out).write_pdf("resultado_final.pdf")
 
 # Interfaz Streamlit
 st.title("Aplicación de Selección de Conductores y Transformador")
