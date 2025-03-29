@@ -122,20 +122,40 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     return resultados_cargas, resumen
 
 def generar_pdf(cargas_df, resumen):
-    doc = SimpleDocTemplate("resultado_final.pdf", pagesize=landscape(letter))
-    styles = getSampleStyleSheet()
-    elements = []
+    from reportlab.lib.units import cm
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.platypus import Paragraph
 
+    doc = SimpleDocTemplate("resultado_final.pdf", pagesize=landscape(letter), leftMargin=1*cm, rightMargin=1*cm, topMargin=1*cm, bottomMargin=1*cm)
+    styles = getSampleStyleSheet()
+    small_style = ParagraphStyle(name='Small', fontSize=7, leading=8, alignment=1)
+
+    elements = []
     elements.append(Paragraph("Listado de Cargas", styles['Heading2']))
-    table_data = [list(cargas_df.columns)] + cargas_df.values.tolist()
-    table = Table(table_data)
+
+    columnas_pdf = {
+        'No': 'No', 'Id': 'ID', 'Carga': 'Carga', 'Tensión [V]': 'Tensión [V]',
+        'Sistema': 'Sistema', 'Tipo': 'Tipo', 'Potencia Valor': 'Potencia',
+        'Potencia Unidad': 'Unidad', 'Tipo de Uso': 'Uso', 'VFD': 'VFD',
+        'Factor de Potencia': 'FP', 'Eficiencia': 'Efic.',
+        'Factor Utilización': 'FU', 'P [kW]': 'P [kW]',
+        'Q [kVAR]': 'Q [kVAR]', 'S [kVA]': 'S [kVA]'
+    }
+
+    cargas_df = cargas_df.rename(columns=columnas_pdf)
+    table_data = [[Paragraph(str(col), small_style) for col in cargas_df.columns]] + [
+        [Paragraph(str(cell), small_style) for cell in row] for row in cargas_df.values.tolist()
+    ]
+
+    table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.black)
     ]))
     elements.append(table)
     elements.append(Spacer(1, 12))
@@ -145,6 +165,7 @@ def generar_pdf(cargas_df, resumen):
         elements.append(Paragraph(f"<b>{key}:</b> {round(val, 2)}", styles['Normal']))
 
     doc.build(elements)
+
 
 # Interfaz Streamlit
 st.title("Aplicación de Selección de Conductores y Transformador")
