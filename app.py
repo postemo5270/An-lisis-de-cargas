@@ -3,6 +3,8 @@
 import pandas as pd
 import math
 import streamlit as st
+import pdfkit
+from jinja2 import Template
 
 # Tabla interna de eficiencias DOE
 eficiencia_doe = pd.DataFrame({
@@ -31,7 +33,6 @@ def calcular_potencia(carga):
     uso = carga['Tipo de Uso']
     vfd = carga['VFD']
 
-    # Determinar fp_load
     if tipo == "Iluminación":
         fp = 0.9
     elif tipo == "Eq Cómputo":
@@ -43,7 +44,6 @@ def calcular_potencia(carga):
     else:
         fp = 0.9
 
-    # Determinar eficiencia
     if tipo in ["Iluminación", "Eq Cómputo", "Aire Acondicionado"]:
         eff = 0.95
     elif tipo == "Motor":
@@ -51,31 +51,41 @@ def calcular_potencia(carga):
     else:
         eff = 0.95
 
-    # Factor de utilización
     fu = 0 if uso == "Stand By" else 1
 
-    # Calcular P
     if unidad == "hp":
         p_kw = valor * 0.746 / eff
     elif unidad == "kW":
         p_kw = valor / eff
-    else:  # kVA
+    else:
         p_kw = valor * fp / eff
 
     p_kw *= fu
     q_kvar = p_kw * math.tan(math.acos(fp))
     s_kva = math.sqrt(p_kw**2 + q_kvar**2)
 
-    return p_kw, q_kvar, s_kva
+    return fp, eff, fu, p_kw, q_kvar, s_kva
 
 def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     kw_total = 0
     kvar_total = 0
+    resultados_cargas = []
 
-    for carga in cargas:
-        p, q, _ = calcular_potencia(carga)
+    for i, carga in enumerate(cargas):
+        fp, eff, fu, p, q, s = calcular_potencia(carga)
         kw_total += p
         kvar_total += q
+        carga_res = carga.copy()
+        carga_res.update({
+            'No': i+1,
+            'Factor de Potencia': round(fp, 3),
+            'Eficiencia': round(eff, 3),
+            'Factor Utilización': fu,
+            'P [kW]': round(p, 2),
+            'Q [kVAR]': round(q, 2),
+            'S [kVA]': round(s, 2)
+        })
+        resultados_cargas.append(carga_res)
 
     kva_total = math.sqrt(kw_total**2 + kvar_total**2)
     fp_total = kw_total / kva_total if kva_total else 0
@@ -89,9 +99,9 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 
     res_final_kva = tr_sel - kva_total_div_perd
     res_final_pct = res_final_kva / tr_sel
-    tr_carg = (kva_div +  tr_perd/fp_total)/ tr_sel
+    tr_carg = kva_total_div_perd / tr_sel
 
-    return {
+    resumen = {
         'P [kW] total': kw_total,
         'Q [kVAR] total': kvar_total,
         'S [kVA] total': kva_total,
@@ -106,6 +116,26 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
         'Reserva final [%]': res_final_pct,
         'Cargabilidad [%]': tr_carg
     }
+
+    return resultados_cargas, resumen
+
+def generar_pdf(cargas_df, resumen):
+    html_template = """
+    <html>
+    <head><style>table, th, td { border: 1px solid black; border-collapse: collapse; padding: 4px; }</style></head>
+    <body>
+    <h2>Listado de Cargas</h2>
+    {{ cargas_table }}
+    <h2>Resumen Final</h2>
+    <ul>
+    {% for key, val in resumen.items() %}<li><b>{{ key }}:</b> {{ '{:.2f}'.format(val) }}</li>{% endfor %}
+    </ul>
+    </body>
+    </html>
+    """
+    template = Template(html_template)
+    html_out = template.render(cargas_table=cargas_df.to_html(index=False), resumen=resumen)
+    pdfkit.from_string(html_out, "resultado_final.pdf")
 
 # Interfaz Streamlit
 st.title("Aplicación de Selección de Conductores y Transformador")
@@ -144,7 +174,13 @@ res_min = st.slider("Reserva mínima [%]", 0.0, 0.5, 0.2)
 tr_tipo = st.selectbox("Tipo de transformador", ["SECO", "ACEITE"])
 
 if st.button("Calcular resultados"):
-    resultados = calcular_resultados_finales(cargas, fd, res_min, tr_tipo)
-    st.subheader("Resultados")
-    for key, val in resultados.items():
+    resultados_cargas, resumen = calcular_resultados_finales(cargas, fd, res_min, tr_tipo)
+    df_resultado = pd.DataFrame(resultados_cargas)
+    st.subheader("Listado de Cargas")
+    st.dataframe(df_resultado)
+    st.subheader("Resumen Final")
+    for key, val in resumen.items():
         st.write(f"{key}: {round(val, 2)}")
+    generar_pdf(df_resultado, resumen)
+    with open("resultado_final.pdf", "rb") as f:
+        st.download_button("Descargar PDF", f, file_name="resultado_final.pdf")
