@@ -3,7 +3,7 @@
 import pandas as pd
 import math
 import streamlit as st
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import landscape, letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -101,7 +101,7 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 
     res_final_kva = tr_sel - kva_total_div_perd
     res_final_pct = res_final_kva / tr_sel
-    tr_carg = kva_total_div_perd / tr_sel
+    tr_carg = (kva_div + tr_perd / fp_total) / tr_sel
 
     resumen = {
         'P [kW] total': kw_total,
@@ -122,7 +122,7 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     return resultados_cargas, resumen
 
 def generar_pdf(cargas_df, resumen):
-    doc = SimpleDocTemplate("resultado_final.pdf", pagesize=letter)
+    doc = SimpleDocTemplate("resultado_final.pdf", pagesize=landscape(letter))
     styles = getSampleStyleSheet()
     elements = []
 
