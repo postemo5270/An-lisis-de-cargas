@@ -116,6 +116,10 @@ cargas = []
 
 for i in range(int(n_cargas)):
     st.markdown(f"### Carga {i+1}")
+    id_carga = st.text_input("ID", key=f"id_{i}")
+    nombre_carga = st.text_input("Descripción de la carga", key=f"desc_{i}")
+    tension = st.selectbox("Tensión [V]", [120, 208, 220, 480], key=f"tension_{i}")
+    sistema = st.selectbox("Sistema", ["1 fase", "2 fases", "3 fases"], key=f"sistema_{i}")
     tipo = st.selectbox(f"Tipo", ["Iluminación", "Eq Cómputo", "Aire Acondicionado", "Motor"], key=f"tipo_{i}")
     valor = st.number_input("Potencia Valor", key=f"valor_{i}")
     unidad = st.selectbox("Unidad", ["hp", "kW", "kVA"], key=f"unidad_{i}")
@@ -123,6 +127,10 @@ for i in range(int(n_cargas)):
     vfd = st.selectbox("¿VFD?", ["Sí", "No", "N/A"], key=f"vfd_{i}")
 
     cargas.append({
+        'Id': id_carga,
+        'Carga': nombre_carga,
+        'Tensión [V]': tension,
+        'Sistema': sistema,
         'Tipo': tipo,
         'Potencia Valor': valor,
         'Potencia Unidad': unidad,
