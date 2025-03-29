@@ -24,16 +24,66 @@ def obtener_eficiencia(tr_sel, tr_tipo):
         return fila.iloc[0][tr_tipo.upper()]
     return None
 
-def calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo):
+def calcular_potencia(carga):
+    tipo = carga['Tipo']
+    unidad = carga['Potencia Unidad']
+    valor = carga['Potencia Valor']
+    uso = carga['Tipo de Uso']
+    vfd = carga['VFD']
+
+    # Determinar fp_load
+    if tipo == "Iluminación":
+        fp = 0.9
+    elif tipo == "Eq Cómputo":
+        fp = 0.92
+    elif tipo == "Aire Acondicionado":
+        fp = 0.88
+    elif tipo == "Motor":
+        fp = 0.98 if vfd == "Sí" else 0.88
+    else:
+        fp = 0.9
+
+    # Determinar eficiencia
+    if tipo in ["Iluminación", "Eq Cómputo", "Aire Acondicionado"]:
+        eff = 0.95
+    elif tipo == "Motor":
+        eff = 0.9 if vfd == "Sí" else 0.95
+    else:
+        eff = 0.95
+
+    # Factor de utilización
+    fu = 0 if uso == "Stand By" else 1
+
+    # Calcular P
+    if unidad == "hp":
+        p_kw = valor * 0.746 / eff
+    elif unidad == "kW":
+        p_kw = valor / eff
+    else:  # kVA
+        p_kw = valor * fp / eff
+
+    p_kw *= fu
+    q_kvar = p_kw * math.tan(math.acos(fp))
+    s_kva = math.sqrt(p_kw**2 + q_kvar**2)
+
+    return p_kw, q_kvar, s_kva
+
+def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
+    kw_total = 0
+    kvar_total = 0
+
+    for carga in cargas:
+        p, q, _ = calcular_potencia(carga)
+        kw_total += p
+        kvar_total += q
+
     kva_total = math.sqrt(kw_total**2 + kvar_total**2)
     fp_total = kw_total / kva_total if kva_total else 0
-
     kva_div = kva_total * fd
     kva_total_div = kva_div * (1 + res_min)
 
     tr_sel = seleccionar_transformador(kva_total_div)
     tr_eff = obtener_eficiencia(tr_sel, tr_tipo)
-
     tr_perd = tr_sel * fp_total * ((1 / tr_eff) - 1)
     kva_total_div_perd = kva_total_div + (tr_perd / fp_total)
 
@@ -42,7 +92,9 @@ def calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo):
     tr_carg = kva_total_div_perd / tr_sel
 
     return {
-        'Suma Total S[kVA]': kva_total,
+        'P [kW] total': kw_total,
+        'Q [kVAR] total': kvar_total,
+        'S [kVA] total': kva_total,
         'Factor de potencia total': fp_total,
         'Carga diversificada [kVA]': kva_div,
         'Carga con reserva [kVA]': kva_total_div,
@@ -56,16 +108,35 @@ def calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo):
     }
 
 # Interfaz Streamlit
-st.title("Selección de Transformador")
+st.title("Aplicación de Selección de Conductores y Transformador")
 
-kw_total = st.number_input("Suma Total P [kW]", min_value=0.0, value=100.0)
-kvar_total = st.number_input("Suma Total Q [kVAR]", min_value=0.0, value=50.0)
+st.subheader("Ingresar Cargas")
+n_cargas = st.number_input("Número de cargas", min_value=1, max_value=20, value=5)
+cargas = []
+
+for i in range(int(n_cargas)):
+    st.markdown(f"### Carga {i+1}")
+    tipo = st.selectbox(f"Tipo", ["Iluminación", "Eq Cómputo", "Aire Acondicionado", "Motor"], key=f"tipo_{i}")
+    valor = st.number_input("Potencia Valor", key=f"valor_{i}")
+    unidad = st.selectbox("Unidad", ["hp", "kW", "kVA"], key=f"unidad_{i}")
+    uso = st.selectbox("Tipo de Uso", ["Contínuo", "Intermitente", "Stand By"], key=f"uso_{i}")
+    vfd = st.selectbox("¿VFD?", ["Sí", "No", "N/A"], key=f"vfd_{i}")
+
+    cargas.append({
+        'Tipo': tipo,
+        'Potencia Valor': valor,
+        'Potencia Unidad': unidad,
+        'Tipo de Uso': uso,
+        'VFD': vfd
+    })
+
+st.subheader("Parámetros Generales")
 fd = st.slider("Factor de Diversificación", 0.0, 1.0, 0.75)
 res_min = st.slider("Reserva mínima [%]", 0.0, 0.5, 0.2)
 tr_tipo = st.selectbox("Tipo de transformador", ["SECO", "ACEITE"])
 
-if st.button("Calcular"):
-    resultados = calcular_resultados_finales(kw_total, kvar_total, fd, res_min, tr_tipo)
+if st.button("Calcular resultados"):
+    resultados = calcular_resultados_finales(cargas, fd, res_min, tr_tipo)
+    st.subheader("Resultados")
     for key, val in resultados.items():
         st.write(f"{key}: {round(val, 2)}")
-
