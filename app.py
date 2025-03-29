@@ -3,8 +3,10 @@
 import pandas as pd
 import math
 import streamlit as st
-from weasyprint import HTML
-from jinja2 import Template
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 # Tabla interna de eficiencias DOE
 eficiencia_doe = pd.DataFrame({
@@ -120,22 +122,29 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     return resultados_cargas, resumen
 
 def generar_pdf(cargas_df, resumen):
-    html_template = """
-    <html>
-    <head><style>table, th, td { border: 1px solid black; border-collapse: collapse; padding: 4px; }</style></head>
-    <body>
-    <h2>Listado de Cargas</h2>
-    {{ cargas_table }}
-    <h2>Resumen Final</h2>
-    <ul>
-    {% for key, val in resumen.items() %}<li><b>{{ key }}:</b> {{ '{:.2f}'.format(val) }}</li>{% endfor %}
-    </ul>
-    </body>
-    </html>
-    """
-    template = Template(html_template)
-    html_out = template.render(cargas_table=cargas_df.to_html(index=False), resumen=resumen)
-    HTML(string=html_out).write_pdf("resultado_final.pdf")
+    doc = SimpleDocTemplate("resultado_final.pdf", pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Listado de Cargas", styles['Heading2']))
+    table_data = [list(cargas_df.columns)] + cargas_df.values.tolist()
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("Resumen Final", styles['Heading2']))
+
+    for key, val in resumen.items():
+        elements.append(Paragraph(f"<b>{key}:</b> {round(val, 2)}", styles['Normal']))
+
+    doc.build(elements)
 
 # Interfaz Streamlit
 st.title("Aplicación de Selección de Conductores y Transformador")
