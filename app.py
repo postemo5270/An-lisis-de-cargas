@@ -1,4 +1,4 @@
-# seleccion_conductores_app.py
+# cuadro_cargas_app.py
 
 import pandas as pd
 import math
@@ -168,7 +168,7 @@ def generar_pdf(cargas_df, resumen):
 
 
 # Interfaz Streamlit
-st.title("Aplicación de Selección de Conductores y Transformador")
+st.title("Aplicación de Selección de transformador")
 
 st.subheader("Ingresar Cargas")
 n_cargas = st.number_input("Número de cargas", min_value=1, max_value=20, value=5)
