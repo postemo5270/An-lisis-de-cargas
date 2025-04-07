@@ -144,7 +144,7 @@ if st.button("Interpretar y agregar"):
     st.json(nueva_carga)
 
 st.subheader("Ingresar Cargas manualmente")
-n_cargas = st.number_input("Número de cargas", min_value=1, max_value=20, value=0)
+n_cargas = st.number_input("Número de cargas", min_value=0, max_value=20, value=0)
 for i in range(int(n_cargas)):
     st.markdown(f"### Carga {i+1}")
     id_carga = st.text_input("ID", key=f"id_{i}")
