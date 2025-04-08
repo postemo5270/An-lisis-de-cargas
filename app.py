@@ -5,14 +5,14 @@ import streamlit as st
 import re
 from unicodedata import normalize
 
-[#2-tabla_eficiencia_doe]
+#2-tabla_eficiencia_doe
 eficiencia_doe = pd.DataFrame({
     'POTENCIA': [3, 5, 10, 15, 30, 45, 75, 112.5, 150, 225, 300, 500, 750, 1000, 1250, 1500, 1600, 2000, 2500, 3750, 5000, 7500, 10000],
     'SECOS':    [0.99, 0.99, 0.99, 0.9789, 0.9823, 0.984, 0.986, 0.9874, 0.9883, 0.9894, 0.9902, 0.9914, 0.9923, 0.9928, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
     'ACEITE':   [0.99, 0.99, 0.99, 0.9865, 0.9883, 0.9892, 0.9903, 0.9911, 0.9916, 0.9923, 0.9927, 0.9935, 0.994, 0.9943, 0.99, 0.9948, 0.99, 0.9951, 0.9953, 0.99, 0.99, 0.99, 0.99]
 })
 
-[#3-funcion_interpretar_texto]
+#3-funcion_interpretar_texto
 def limpiar_texto(t):
     t = t.lower()
     t = normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
@@ -89,7 +89,7 @@ def interpretar_texto(texto):
 
     return carga
 
-[#4-funcion_validar_carga]
+#4-funcion_validar_carga
 def validar_carga(carga):
     errores = []
     for campo in ['Tipo', 'Tensión [V]', 'Sistema', 'Potencia Valor', 'Potencia Unidad', 'Tipo de Uso']:
@@ -97,7 +97,7 @@ def validar_carga(carga):
             errores.append(f"Falta: {campo}")
     return errores
 
-[#5-funcion_calcular_potencia]
+#5-funcion_calcular_potencia
 def calcular_potencia(carga):
     tipo = carga['Tipo']
     unidad = carga['Potencia Unidad']
@@ -113,17 +113,17 @@ def calcular_potencia(carga):
     s_kva = math.sqrt(p_kw**2 + q_kvar**2)
     return fp, eff, fu, p_kw, q_kvar, s_kva
 
-[#6-funcion_seleccionar_transformador]
+#6-funcion_seleccionar_transformador
 def seleccionar_transformador(kva_total_div):
     candidatos = eficiencia_doe[eficiencia_doe['POTENCIA'] >= kva_total_div]
     return candidatos.iloc[0]['POTENCIA'] if not candidatos.empty else eficiencia_doe['POTENCIA'].max()
 
-[#7-funcion_obtener_eficiencia]
+#7-funcion_obtener_eficiencia
 def obtener_eficiencia(tr_sel, tr_tipo):
     fila = eficiencia_doe[eficiencia_doe['POTENCIA'] == tr_sel]
     return fila.iloc[0][tr_tipo.upper()] if not fila.empty else 0.88
 
-[#8-funcion_calculo_final]
+#8-funcion_calculo_final
 def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     kw_total, kvar_total, resultados_cargas = 0, 0, []
     for i, carga in enumerate(cargas):
@@ -155,14 +155,14 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
     }
     return resultados_cargas, resumen
 
-[#9-interfaz_usuario_streamlit]
+#9-interfaz_usuario_streamlit
 st.title("Transformador por lenguaje natural")
 
 if "cargas" not in st.session_state:
     st.session_state["cargas"] = []
     st.session_state["fase"] = "entrada"
 
-[#10-ingreso_carga_texto]
+#10-ingreso_carga_texto
 if st.session_state["fase"] == "entrada":
     texto = st.text_input("Describe una carga nueva:")
     if st.button("Interpretar carga"):
@@ -183,7 +183,7 @@ if st.session_state["fase"] == "entrada":
     if continuar == "No":
         st.session_state["fase"] = "parametros"
 
-[#11-ingreso_parametros_generales]
+#11-ingreso_parametros_generales
 if st.session_state["fase"] == "parametros":
     st.subheader("Parámetros Generales")
     factor_div = st.text_input("¿Qué factor de diversificación deseas? (entre 0 y 1):")
