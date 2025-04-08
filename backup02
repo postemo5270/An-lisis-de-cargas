@@ -1,4 +1,5 @@
 # cuadro_cargas_app.py
+# Ingresa texto en lenguaje natural + formulario
 
 import pandas as pd
 import math
