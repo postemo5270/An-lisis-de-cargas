@@ -181,7 +181,7 @@ if st.session_state["fase"] == "entrada":
         for i, carga in enumerate(st.session_state["cargas"], 1):
             st.write(f"{i}. {carga['Carga']}")
 
-    continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=0, key="continuar_radio")
+    continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
     if continuar == "No":
         st.session_state["fase"] = "parametros"
 
