@@ -120,8 +120,10 @@ def seleccionar_transformador(kva_total_div):
 
 #7-funcion_obtener_eficiencia
 def obtener_eficiencia(tr_sel, tr_tipo):
+    columna = "SECOS" if tr_tipo.upper() == "SECO" else "ACEITE"
     fila = eficiencia_doe[eficiencia_doe['POTENCIA'] == tr_sel]
-    return fila.iloc[0][tr_tipo.upper()] if not fila.empty else 0.88
+    return fila.iloc[0][columna] if not fila.empty else 0.88
+
 
 #8-funcion_calculo_final
 def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
