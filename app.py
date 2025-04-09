@@ -263,6 +263,16 @@ if "cargas" not in st.session_state:
 
 #10-ingreso_carga_texto
 if st.session_state["fase"] == "entrada":
+# ubicación del botón reinicio manual
+    st.divider()
+    if st.button("🔄 Borrar todo y comenzar de nuevo (Manual)", key="btn_reset_manual"):
+        st.session_state.clear()
+        st.rerun()
+    # termina ubicación botón reinicio manual
+
+
+
+    
     texto = st.text_input("Describe una carga nueva:")
     if st.button("Interpretar carga"):
         nueva_carga = interpretar_texto(texto)
