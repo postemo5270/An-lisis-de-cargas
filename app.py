@@ -252,6 +252,15 @@ with tab2:
             else:
                 st.session_state["cargas"].append(carga_completa)
                 st.success("Carga agregada correctamente desde demo.")
+# ubicacion de boton
+st.divider()
+if st.button("🔁 Borrar todo y comenzar de nuevo (Lenguaje Natural)", key="btn_reset_ln"):
+    st.session_state.clear()
+    st.rerun()
+
+
+
+
                 
 #15-hasta aqui bloque pestaña simulacion 
 
