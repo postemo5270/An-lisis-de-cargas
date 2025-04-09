@@ -160,16 +160,6 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 #9-interfaz_usuario_streamlit
 st.title("Transformador por lenguaje natural")
 
-# botón de reinicio
-with st.sidebar:
-    st.markdown("## ⚙️ Opciones")
-    if st.button("🔁 Borrar todo y comenzar de nuevo"):
-        st.session_state.clear()
-        st.rerun()
-
-# Termina botón de reinicio
-
-
 # 15-demo_simulada_chatgpt_sin_api (con pestaña)
 
 tab1, tab2 = st.tabs(["Cargas manuales", "Carga por lenguaje natural (simulada)"])
@@ -258,7 +248,7 @@ if st.button("🔁 Borrar todo y comenzar de nuevo (Lenguaje Natural)", key="btn
     st.session_state.clear()
     st.rerun()
 
-
+# Termina ubicacion de boton
 
 
                 
