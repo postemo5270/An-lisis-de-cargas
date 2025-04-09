@@ -172,7 +172,7 @@ with tab2:
     if st.button("🔁 Borrar todo y comenzar de nuevo (Lenguaje Natural)", key="btn_reset_ln"):
         st.session_state.clear()
         st.rerun()
-    # st.divider()
+    st.divider()
 
 # Termina ubicacion de boton
 
