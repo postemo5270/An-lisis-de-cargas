@@ -167,6 +167,14 @@ tab1, tab2 = st.tabs(["Cargas manuales", "Carga por lenguaje natural (simulada)"
 with tab2:
     st.subheader("🧪 Demo simulada: Interpretación tipo ChatGPT sin conexión")
 
+    # ubicacion de boton
+st.divider()
+if st.button("🔁 Borrar todo y comenzar de nuevo (Lenguaje Natural)", key="btn_reset_ln"):
+    st.session_state.clear()
+    st.rerun()
+
+# Termina ubicacion de boton
+
     texto_demo = st.text_area(
         "Describe aquí una carga (ej: 'motor 5 hp trifásico con vfd en stand by a 220V')",
         height=100
@@ -242,13 +250,7 @@ with tab2:
             else:
                 st.session_state["cargas"].append(carga_completa)
                 st.success("Carga agregada correctamente desde demo.")
-# ubicacion de boton
-st.divider()
-if st.button("🔁 Borrar todo y comenzar de nuevo (Lenguaje Natural)", key="btn_reset_ln"):
-    st.session_state.clear()
-    st.rerun()
 
-# Termina ubicacion de boton
 
 
                 
