@@ -298,8 +298,8 @@ if st.session_state["fase"] == "entrada":
     if continuar == "No":
         st.session_state["fase"] = "parametros"
     elif continuar == "Sí":
-    st.session_state["continuar_radio"] = None  # 🔁 Reiniciar selección radio
-    st.experimental_rerun()  # 🔁 Forzar redibujado para que el input exista en el siguiente ciclo
+        st.session_state["continuar_radio"] = None  # 🔁 Reiniciar selección radio
+        st.experimental_rerun()  # 🔁 Forzar redibujado para que el input exista en el siguiente ciclo
 
         
 #11-ingreso_parametros_generales
