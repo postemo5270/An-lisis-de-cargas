@@ -264,20 +264,14 @@ if "cargas" not in st.session_state:
 
 #10-ingreso_carga_texto
 if st.session_state["fase"] == "entrada":
-# ubicación del botón reinicio manual
+    # ubicación del botón reinicio manual
     st.divider()
-    if st.button("🔄 Borrar todo y comenzar de nuevo (Manual)", key="btn_reset_manual"):
+    if st.button("🗑️ Borrar todo y comenzar de nuevo (Manual)", key="btn_reset_manual"):
         st.session_state.clear()
         st.rerun()
     # termina ubicación botón reinicio manual
-    
+
     texto = st.text_input("Describe una carga nueva:", key="input_manual")
-    if "continuar_radio" in st.session_state and st.session_state["continuar_radio"] is None:
-        st.session_state["input_manual"] = ""  # 🧹 Limpiar el campo si fue reiniciado
-
-
-
-
     
     if st.button("Interpretar carga"):
         nueva_carga = interpretar_texto(texto)
@@ -287,19 +281,23 @@ if st.session_state["fase"] == "entrada":
         else:
             st.session_state["cargas"].append(nueva_carga)
             st.success("Carga agregada correctamente.")
-            st.session_state["continuar_radio"] = None  # 🔄 Reiniciar selección radio
+            st.session_state["continuar_radio"] = None  # Reiniciar selección radio
 
     if st.session_state["cargas"]:
         st.markdown("### Cargas ingresadas:")
         for i, carga in enumerate(st.session_state["cargas"], 1):
-            st.write(f"{i}. {carga['Carga']}")
+            st.write(f"{i}. {carga['carga']}")
 
     continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
+
     if continuar == "No":
         st.session_state["fase"] = "parametros"
+
     elif continuar == "Sí":
-        st.session_state["continuar_radio"] = None  # 🔁 Reiniciar selección radio
-        st.experimental_rerun()  # 🔁 Forzar redibujado para que el input exista en el siguiente ciclo
+        if "input_manual" in st.session_state:
+            st.session_state["input_manual"] = ""  # Limpiar el campo de texto
+        st.session_state["continuar_radio"] = None  # Reiniciar selección radio
+
 
         
 #11-ingreso_parametros_generales
