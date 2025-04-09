@@ -292,7 +292,9 @@ if st.session_state["fase"] == "entrada":
         st.session_state["fase"] = "parametros"
     elif continuar == "Sí":
         if "input_manual" in st.session_state:
-            st.session_state["input_manual"] = ""
+            st.session_state["input_manual"] = ""  # Limpiar el campo de texto
+        st.session_state["continuar_radio"] = None  # Reiniciar selección radio
+
         
 #11-ingreso_parametros_generales
 if st.session_state["fase"] == "parametros":
