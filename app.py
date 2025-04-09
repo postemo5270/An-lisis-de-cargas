@@ -272,7 +272,7 @@ if st.session_state["fase"] == "entrada":
     # termina ubicación botón reinicio manual
 
     texto = st.text_input("Describe una carga nueva:", key="input_manual")
-    
+
     if st.button("Interpretar carga"):
         nueva_carga = interpretar_texto(texto)
         errores = validar_carga(nueva_carga)
@@ -286,17 +286,23 @@ if st.session_state["fase"] == "entrada":
     if st.session_state["cargas"]:
         st.markdown("### Cargas ingresadas:")
         for i, carga in enumerate(st.session_state["cargas"], 1):
-            st.write(f"{i}. {carga['carga']}")
+            st.write(f"{i}. {carga['Carga']}")  # Corrección de clave
 
-    continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
+    continuar = st.radio(
+        "¿Deseas ingresar otra carga?",
+        ["Sí", "No"],
+        index=None,
+        key="continuar_radio"
+    )
 
     if continuar == "No":
         st.session_state["fase"] = "parametros"
 
     elif continuar == "Sí":
         if "input_manual" in st.session_state:
-            st.session_state["input_manual"] = ""  # Limpiar el campo de texto
-        st.session_state["continuar_radio"] = None  # Reiniciar selección radio
+            st.session_state["input_manual"] = ""  # Limpiar campo texto
+        st.session_state["continuar_radio"] = None  # Reiniciar radio
+
 
 
         
