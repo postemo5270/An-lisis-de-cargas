@@ -264,6 +264,7 @@ if "cargas" not in st.session_state:
 
 #10-ingreso_carga_texto
 if st.session_state["fase"] == "entrada":
+
     # ubicación del botón reinicio manual
     st.divider()
     if st.button("🗑️ Borrar todo y comenzar de nuevo (Manual)", key="btn_reset_manual"):
@@ -286,13 +287,12 @@ if st.session_state["fase"] == "entrada":
     if st.session_state["cargas"]:
         st.markdown("### Cargas ingresadas:")
         for i, carga in enumerate(st.session_state["cargas"], 1):
-            st.write(f"{i}. {carga['Carga']}")  # Corrección de clave
+            descripcion = carga.get("Carga", "Descripción no disponible")
+            st.write(f"{i}. {descripcion}")
 
     continuar = st.radio(
-        "¿Deseas ingresar otra carga?",
-        ["Sí", "No"],
-        index=None,
-        key="continuar_radio"
+        "¿Deseas ingresar otra carga?", ["Sí", "No"],
+        index=None, key="continuar_radio"
     )
 
     if continuar == "No":
@@ -301,7 +301,7 @@ if st.session_state["fase"] == "entrada":
     elif continuar == "Sí":
         if "input_manual" in st.session_state:
             st.session_state["input_manual"] = ""  # Limpiar campo texto
-        st.session_state["continuar_radio"] = None  # Reiniciar radio
+        st.session_state["continuar_radio"] = None  # Reiniciar selección radio
 
 
 
