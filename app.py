@@ -290,8 +290,8 @@ if st.session_state["fase"] == "entrada":
     continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
     if continuar == "No":
         st.session_state["fase"] = "parametros"
-        elif continuar == "Sí":
-            st.session_state["input_manual"] = ""  # 🔄 Limpiar el campo de texto    
+    elif continuar == "Sí":
+        st.session_state["input_manual"] = ""  # 🔄 Limpiar el campo de texto    
 
 #11-ingreso_parametros_generales
 if st.session_state["fase"] == "parametros":
