@@ -291,8 +291,9 @@ if st.session_state["fase"] == "entrada":
     if continuar == "No":
         st.session_state["fase"] = "parametros"
     elif continuar == "Sí":
-        st.session_state["input_manual"] = ""  # 🔄 Limpiar el campo de texto    
-
+        if "input_manual" in st.session_state:
+            st.session_state["input_manual"] = ""
+        
 #11-ingreso_parametros_generales
 if st.session_state["fase"] == "parametros":
     st.subheader("Parámetros Generales")
