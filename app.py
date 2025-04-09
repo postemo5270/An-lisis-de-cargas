@@ -271,7 +271,12 @@ if st.session_state["fase"] == "entrada":
         st.rerun()
     # termina ubicación botón reinicio manual
 
+    # Asegurarse que esté inicializado antes de renderizar
+    if "input_manual" not in st.session_state:
+        st.session_state["input_manual"] = ""
+
     texto = st.text_input("Describe una carga nueva:", key="input_manual")
+
     if st.button("Interpretar carga"):
         nueva_carga = interpretar_texto(texto)
         errores = validar_carga(nueva_carga)
@@ -288,13 +293,13 @@ if st.session_state["fase"] == "entrada":
             st.write(f"{i}. {carga.get('Carga', 'Descripción no disponible')}")
 
     continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
-    
+
     if continuar == "No":
         st.session_state["fase"] = "parametros"
     elif continuar == "Sí":
-        if "input_manual" in st.session_state:
-            st.session_state["input_manual"] = ""  # Limpiar el campo de texto
-        st.session_state["continuar_radio"] = None  # Reiniciar selección radio
+        st.session_state["input_manual"] = ""  # Limpiar el campo
+        st.session_state["continuar_radio"] = None
+
 
 
 
