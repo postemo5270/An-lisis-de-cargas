@@ -251,6 +251,7 @@ with tab2:
             else:
                 st.session_state["cargas"].append(carga_completa)
                 st.success("Carga agregada correctamente desde demo.")
+                st.session_state["continuar_radio"] = None  # 🔄 Reiniciar selección radio
 
 
 
@@ -282,6 +283,7 @@ if st.session_state["fase"] == "entrada":
         else:
             st.session_state["cargas"].append(nueva_carga)
             st.success("Carga agregada correctamente.")
+            st.session_state["continuar_radio"] = None  # 🔄 Reiniciar selección radio
 
     if st.session_state["cargas"]:
         st.markdown("### Cargas ingresadas:")
