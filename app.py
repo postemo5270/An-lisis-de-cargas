@@ -160,6 +160,16 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 #9-interfaz_usuario_streamlit
 st.title("Transformador por lenguaje natural")
 
+# [#reinicio_aplicacion]
+st.sidebar.markdown("## 🔧 Opciones")
+if st.sidebar.button("🔁 Borrar todo y comenzar de nuevo"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
+# termina bloque reinicio aplicación
+
+
+
 # 15-demo_simulada_chatgpt_sin_api (con pestaña)
 
 tab1, tab2 = st.tabs(["Cargas manuales", "Carga por lenguaje natural (simulada)"])
