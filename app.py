@@ -160,6 +160,91 @@ def calcular_resultados_finales(cargas, fd, res_min, tr_tipo):
 #9-interfaz_usuario_streamlit
 st.title("Transformador por lenguaje natural")
 
+# 15-demo_simulada_chatgpt_sin_api (con pestaña)
+
+tab1, tab2 = st.tabs(["Cargas manuales", "Carga por lenguaje natural (simulada)"])
+
+with tab2:
+    st.subheader("🧪 Demo simulada: Interpretación tipo ChatGPT sin conexión")
+
+    texto_demo = st.text_area(
+        "Describe aquí una carga (ej: 'motor 5 hp trifásico con vfd en stand by a 220V')",
+        height=100
+    )
+
+    def demo_chatgpt_simulado(texto):
+        texto = texto.lower()
+
+        if "motor" in texto:
+            return {
+                "Tipo": "Motor",
+                "Potencia Valor": 5.0,
+                "Potencia Unidad": "hp",
+                "Sistema": "3 fases" if "trifásico" in texto or "3" in texto else "1 fase",
+                "Tensión [V]": 220 if "220" in texto else 120,
+                "Tipo de Uso": "Stand By" if "stand by" in texto else "Contínuo",
+                "VFD": "Sí" if "vfd" in texto else "No"
+            }
+        elif "aire" in texto:
+            return {
+                "Tipo": "Aire Acondicionado",
+                "Potencia Valor": 3.5,
+                "Potencia Unidad": "kW",
+                "Sistema": "1 fase",
+                "Tensión [V]": 120,
+                "Tipo de Uso": "Intermitente",
+                "VFD": "N/A"
+            }
+        elif "ilumin" in texto:
+            return {
+                "Tipo": "Iluminación",
+                "Potencia Valor": 1.2,
+                "Potencia Unidad": "kW",
+                "Sistema": "1 fase",
+                "Tensión [V]": 120,
+                "Tipo de Uso": "Contínuo",
+                "VFD": "N/A"
+            }
+        elif "computo" in texto or "cómputo" in texto:
+            return {
+                "Tipo": "Eq Cómputo",
+                "Potencia Valor": 0.8,
+                "Potencia Unidad": "kVA",
+                "Sistema": "1 fase",
+                "Tensión [V]": 120,
+                "Tipo de Uso": "Contínuo",
+                "VFD": "N/A"
+            }
+        else:
+            return {
+                "Tipo": "Motor",
+                "Potencia Valor": 2.0,
+                "Potencia Unidad": "hp",
+                "Sistema": "1 fase",
+                "Tensión [V]": 120,
+                "Tipo de Uso": "Contínuo",
+                "VFD": "No"
+            }
+
+    if st.button("Interpretar carga simulada", key="btn_demo_simulada"):
+        if not texto_demo.strip():
+            st.warning("Por favor escribe una descripción primero.")
+        else:
+            resultado = demo_chatgpt_simulado(texto_demo)
+            carga_completa = {
+                "Id": "-",
+                "Carga": texto_demo,
+                **resultado
+            }
+            errores = validar_carga(carga_completa)
+            if errores:
+                st.error("Errores detectados: " + ", ".join(errores))
+            else:
+                st.session_state["cargas"].append(carga_completa)
+                st.success("Carga agregada correctamente desde demo.")
+                
+#15-hasta aqui bloque pestaña simulacion 
+
 if "cargas" not in st.session_state:
     st.session_state["cargas"] = []
     st.session_state["fase"] = "entrada"
