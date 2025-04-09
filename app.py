@@ -165,7 +165,7 @@ with st.sidebar:
     st.markdown("## ⚙️ Opciones")
     if st.button("🔁 Borrar todo y comenzar de nuevo"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
 # Termina botón de reinicio
 
