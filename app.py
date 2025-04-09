@@ -270,11 +270,8 @@ if st.session_state["fase"] == "entrada":
         st.session_state.clear()
         st.rerun()
     # termina ubicación botón reinicio manual
-
-
-
     
-    texto = st.text_input("Describe una carga nueva:")
+    texto = st.text_input("Describe una carga nueva:", key="input_manual")
     if st.button("Interpretar carga"):
         nueva_carga = interpretar_texto(texto)
         errores = validar_carga(nueva_carga)
@@ -293,6 +290,8 @@ if st.session_state["fase"] == "entrada":
     continuar = st.radio("¿Deseas ingresar otra carga?", ["Sí", "No"], index=None, key="continuar_radio")
     if continuar == "No":
         st.session_state["fase"] = "parametros"
+    elif continuar == "Sí":
+    st.session_state["input_manual"] = ""  # 🔄 Limpiar el campo de texto    
 
 #11-ingreso_parametros_generales
 if st.session_state["fase"] == "parametros":
